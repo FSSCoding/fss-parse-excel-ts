@@ -79,7 +79,7 @@ export class ExcelParser {
     const options: any = {};
     if (this.config.preserveFormulas !== undefined) options.cellFormula = this.config.preserveFormulas;
     if (this.config.includeFormatting !== undefined) options.cellStyles = this.config.includeFormatting;
-    if (this.config.includeMetadata !== undefined) options.bookProps = this.config.includeMetadata;
+    // Note: bookProps breaks SheetNames, so we'll extract metadata differently
     
     const workbook = XLSX.readFile(filePath, options);
 
@@ -101,6 +101,10 @@ export class ExcelParser {
     }
 
     // Process sheets
+    if (!workbook.SheetNames || !Array.isArray(workbook.SheetNames) || workbook.SheetNames.length === 0) {
+      throw new Error('No sheets found in workbook or invalid sheet names');
+    }
+    
     const sheetsToProcess = this.config.readAllSheets ? workbook.SheetNames : [workbook.SheetNames[0]];
     
     for (const sheetName of sheetsToProcess) {
